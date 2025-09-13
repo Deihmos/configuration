@@ -63,37 +63,68 @@ angular.module('configurationApp')
     };
 
     TraktLogin.prototype.pinLogin = function() {
-      var $scope = this.$scope,
-          self = this;
+      var $scope = this.$scope;
+      var self = this;
 
       // Reset messages
       $scope.messages = [];
 
-      // Request token for pin code
-      return tr.oauth.token($scope.pin.code).then(function(authorization) {
+      // Direct HTTP request to Trakt API instead of using trakt.js library
+      var tokenRequest = {
+        method: 'POST',
+        url: 'https://api.trakt.tv/oauth/token',
+        headers: {
+          'Content-Type': 'application/json',
+          'trakt-api-version': '2',
+          'trakt-api-key': 'c9ccd3684988a7862a8542ae0000535e0fbd2d1c0ca35583af7ea4e784650a61'
+        },
+        data: {
+          code: $scope.pin.code,
+          client_id: 'c9ccd3684988a7862a8542ae0000535e0fbd2d1c0ca35583af7ea4e784650a61',
+          client_secret: 'bf00575b1ad252b514f14b2c6171fe650d474091daad5eb6fa890ef24d581f65',
+          redirect_uri: 'urn:ietf:wg:oauth:2.0:oob',
+          grant_type: 'authorization_code'
+        }
+      };
+
+      return $http(tokenRequest).then(function(response) {
+        var authorization = response.data;
+
         // Request account details
-        return tr['users/settings'].get(authorization.access_token).then(function(settings) {
-          $scope.$apply(function() {
+        var settingsRequest = {
+          method: 'GET',
+          url: 'https://api.trakt.tv/users/settings',
+          headers: {
+            'Content-Type': 'application/json',
+            'trakt-api-version': '2',
+            'trakt-api-key': 'c9ccd3684988a7862a8542ae0000535e0fbd2d1c0ca35583af7ea4e784650a61',
+            'Authorization': 'Bearer ' + authorization.access_token
+          }
+        };
+
+        return $http(settingsRequest).then(function(settingsResponse) {
+          // the $http call automatically does this digest cycle when the promise gets resolved or rejected. No need to trigger $apply manually
+          //$scope.$apply(function() {
             // Fire callback
             $scope.pinAuthenticated({
               authorization: authorization,
               credentials: $scope.pin,
-              settings: settings
+              settings: settingsResponse.data,
             });
-          });
-        }, function(data, status) {
-          $scope.$apply(function() {
-            self.handleError(data, status, 'Unable to retrieve account details');
-          });
+          //});
+        }, function(error) {
+          //$scope.$apply(function() {
+            self.handleError(error.data, error.status, 'Unable to retrieve account details');
+          //});
 
-          return $q.reject(data, status);
+          return $q.reject(error.data, error.status);
         });
-      }, function(data, status) {
-        $scope.$apply(function() {
-          self.handleError(data, status, 'Unable to retrieve token');
-        });
+      }, function(error) {
+        //$scope.$apply(function() {
+          self.handleError(error.data, error.status, 'Unable to retrieve token');
+        //});
 
-        return $q.reject(data, status);
+        return $q.reject(error.data, error.status);
       });
     };
 
