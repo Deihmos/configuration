@@ -1,4 +1,4 @@
-if(typeof window.tfpc == "undefined") {
+if(typeof window.tfpc === "undefined") {
 	window.tfpc = {};
 }
-window.tfpc.metadata = {};
+window.tfpc.metadata = {"version":"1.4.2","revision":{"label":"74f4def-dirty","hash":"74f4def"}};
