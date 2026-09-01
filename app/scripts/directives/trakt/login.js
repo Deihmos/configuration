@@ -60,9 +60,7 @@ angular.module('configurationApp')
         method: 'POST',
         url: authBaseUrl + '/oauth/device/code',
         headers: {
-          'Content-Type': 'application/json',
-          'trakt-api-version': '2',
-          'trakt-api-key': clientId
+          'Content-Type': 'application/json'
         },
         data: {client_id: clientId}
       }).then(function(response) {
@@ -113,9 +111,7 @@ angular.module('configurationApp')
         method: 'POST',
         url: authBaseUrl + '/oauth/device/token',
         headers: {
-          'Content-Type': 'application/json',
-          'trakt-api-version': '2',
-          'trakt-api-key': clientId
+          'Content-Type': 'application/json'
         },
         data: {
           code: $scope.device.device_code,
